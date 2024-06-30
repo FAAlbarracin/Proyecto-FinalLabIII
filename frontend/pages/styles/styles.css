@@ -1,0 +1,27 @@
+/* Estilos CSS adicionales para ajustar la apariencia */
+.form-container {
+    flex: 1; /* El formulario ocupa todo el espacio disponible */
+    padding: 1.5rem; /* Ajuste de espaciado para el formulario */
+}
+
+.image-container {
+    flex: 1; /* La imagen ocupa todo el espacio disponible */
+    height: 100%; /* Altura máxima igual a la altura del formulario */
+    position: relative; /* Para posicionar el contenido dentro de este contenedor */
+    max-width: 400px; /* Ancho máximo del contenedor de la imagen */
+    margin: auto; /* Centrar el contenedor horizontalmente */
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-top-left-radius: 0; /* Ajuste para esquinas redondeadas en la imagen */
+    border-bottom-left-radius: 0; /* Ajuste para esquinas redondeadas en la imagen */
+}
+
+@media (max-width: 899px) {
+    .image-container {
+        display: none; /* Ocultar la imagen en dispositivos pequeños */
+    }
+}

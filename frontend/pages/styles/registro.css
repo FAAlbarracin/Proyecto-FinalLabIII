@@ -1,0 +1,54 @@
+ /* Estilos adicionales */
+ body {
+    /* background: linear-gradient(135deg, rgb(85, 155, 146), rgb(201, 200, 200), rgb(126, 193, 235)); */
+    background-color: white;
+    font-family: Arial, sans-serif; /* Fuente principal */
+}
+
+.form-container {
+    max-width: 500px; 
+    margin: auto; 
+    padding: 1.5rem; 
+    background: linear-gradient(135deg, rgb(85, 155, 146), white, rgb(126, 199, 244)); /* Color de fondo del formulario */
+    border-radius: 10px; 
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); 
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);  */
+    border: solid 1px rgb(255, 255, 255);
+
+}
+
+.form-container input {
+    width: 100%; /* Ancho completo para los campos de entrada */
+    padding: 0.5rem; /* Espaciado interno reducido de los campos de entrada */
+    margin-bottom: 0.75rem; /* Espaciado inferior reducido entre los campos */
+    border: 1px solid #ccc; /* Borde del campo de entrada */
+    border-radius: 5px; /* Bordes redondeados del campo de entrada */
+    font-size: 0.9rem; /* Tamaño de fuente reducido */
+    outline: none; /* Quitamos el contorno al hacer clic */
+}
+
+.form-container button {
+    width: 100%; 
+    padding: 0.75rem; 
+     background: linear-gradient(135deg, rgb(91, 164, 154), white, rgb(107, 196, 251));  
+    color: black; 
+    border: none; 
+    border-radius: 5px; 
+    font-size: 1rem; 
+    cursor: pointer; 
+    transition: background-color 0.3s ease; 
+}
+
+.form-container button:hover {
+   background: linear-gradient(135deg, rgb(91, 164, 154), rgb(194, 194, 194), rgb(107, 196, 251));; /* Color de fondo del botón al pasar el cursor */
+    color: black; /* Cambiamos el color del texto al pasar el cursor */
+}
+
+.form-container span {
+    font-size: 0.9rem; 
+    color: #666; 
+}
+
+.form-container .text-bold {
+    font-weight: bold; 
+}
