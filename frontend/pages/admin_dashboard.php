@@ -30,6 +30,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
             <option value="prestamos.php">Préstamos</option>
             <option value="socios.php">Socios</option>
         </select>
+        <button><a href="logout.php">logout</a></button>
     </div>
 
     <div class="content">

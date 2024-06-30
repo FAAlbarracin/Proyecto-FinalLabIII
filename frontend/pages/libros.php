@@ -6,6 +6,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
     header("Location: http://localhost/proyectofinal/frontend/pages/loginEmpleado.php");
     exit;
 }
+
+function sanitizarEntrada($dato) {
+    return htmlspecialchars(strip_tags(trim($dato)));
+}
 ?>
 
 <!DOCTYPE html>
@@ -14,7 +18,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Empleado</title>
+    <title>Libros</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 
@@ -31,6 +35,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
             <option value="prestamos.php">Préstamos</option>
             <option value="socios.php">Socios</option>
         </select>
+        <button><a href="logout.php">logout</a></button>
     </div>
     <div class="content">
         <?php
@@ -39,7 +44,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
         ?>
 
         <div class="container">
-            <h2>Agregar Empleado</h2>
+            <h2>Agregar Libro</h2>
             <form method="post" action="libros.php">
                 <div class="form-group">
                     <label for="titulo">Titulo:</label>
@@ -73,7 +78,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
                     <label for="genero">Genero:</label>
                     <input type="text" id="genero" name="genero" class="form-control" required>
                 </div>
-                <button type="submit" name="agregar" class="btn btn-primary">Agregar Empleado</button>
+                <button type="submit" name="agregar" class="btn btn-primary">Agregar Libro</button>
             </form>
 
             <?php
@@ -112,7 +117,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
                 $result = file_get_contents($url, false, $context);
 
                 if ($result === FALSE) {
-                    echo '<p>Error al agregar el empleado.</p>';
+                    echo '<p>Error al agregar el libro.</p>';
                 } else {
                     $response = json_decode($result, true);
                     echo '<p>' . htmlspecialchars($response['message']) . '</p>';
@@ -190,7 +195,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
                         echo '<td>' . htmlspecialchars($libro['genero']) . '</td>';
                         echo '<td>' . htmlspecialchars($libro['estado']) . '</td>';
                         echo '<td>
-                                <form method="post" action="libros.php" onsubmit="return confirm(\'¿Estás seguro de que quieres eliminar este empleado?\');" style="display:inline;">
+                                <form method="post" action="libros.php" onsubmit="return confirm(\'¿Estás seguro de que quieres eliminar este libro?\');" style="display:inline;">
                                     <input type="hidden" name="titulo" value="' . htmlspecialchars($libro['titulo']) . '">
                                     <button name="delete" type="submit" class="btn btn-danger">Eliminar</button>
                                 </form>
@@ -215,9 +220,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
 
             // Manejo de la solicitud de eliminación
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && isset($_POST['titulo'])) {
-                $titulo = $_POST['titulo'];
+                $titulo = sanitizarEntrada($_POST['titulo']);
                 $url = 'http://localhost/proyectofinal/backend/libros/eliminar.php';
-
+    
                 $data = array('titulo' => $titulo);
                 $options = array(
                     'http' => array(
@@ -226,15 +231,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
                         'content' => json_encode($data),
                     ),
                 );
-
+    
                 $context = stream_context_create($options);
                 $result = file_get_contents($url, false, $context);
-
+    
                 if ($result === FALSE) {
-                    echo '<p>Error al eliminar el empleado.</p>';
+                    $error = error_get_last();
+                    echo '<div class="alert alert-danger">Error al eliminar el libro: ' . $error['message'] . '</div>';
                 } else {
                     $response = json_decode($result, true);
-                    echo '<p>' . htmlspecialchars($response['message']) . '</p>';
+                    echo '<div class="alert alert-success">' . htmlspecialchars($response['message']) . '</div>';
                     // Recargar la página para reflejar los cambios
                     echo '<meta http-equiv="refresh" content="0">';
                 }

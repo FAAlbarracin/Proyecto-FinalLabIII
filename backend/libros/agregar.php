@@ -29,26 +29,20 @@ if (!empty($titulo) && !empty($lanzamiento) && !empty($editorial) && !empty($idi
     }
 
     // Verifica la existencia de los autores
-    $autoresIds = array();
-    $queryAutores = "SELECT * FROM autores WHERE activo = :activo AND nombre IN (:autor1, :autor2, :autor3)";
-    $params = array(':activo' => 1, ':autor1' => $autor1, ':autor2' => $autor2, ':autor3' => $autor3);
-    $stmtAutores = $db->prepare($queryAutores);
-    $stmtAutores->bindValue(':activo', 1, PDO::PARAM_INT);
+    $autores = array_filter([$autor1, $autor2, $autor3]);
+    if (count($autores) > 0) {
+        $placeholders = implode(',', array_fill(0, count($autores), '?'));
+        $queryAutores = "SELECT * FROM autores WHERE activo = 1 AND nombre IN ($placeholders)";
+        $stmtAutores = $db->prepare($queryAutores);
+        $stmtAutores->execute($autores);
+        $autoresRows = $stmtAutores->fetchAll(PDO::FETCH_ASSOC);
 
-    // Vincula los autores que están presentes en la solicitud
-    foreach (array(':autor1', ':autor2', ':autor3') as $param) {
-        if (!empty($data[substr($param, 1)])) {
-            $stmtAutores->bindValue($param, $data[substr($param, 1)], PDO::PARAM_STR);
-        } else {
-            $stmtAutores->bindValue($param, null, PDO::PARAM_NULL);
+        if (count($autoresRows) !== count($autores)) {
+            echo json_encode(array('message' => 'Uno o más de los autores ingresados no existen o no están activos.'));
+            exit;
         }
-    }
-
-    $stmtAutores->execute();
-    $autores = $stmtAutores->fetchAll(PDO::FETCH_ASSOC);
-
-    if (count($autores) !== count(array_filter([$autor1, $autor2, $autor3]))) {
-        echo json_encode(array('message' => 'Uno o más de los autores ingresados no existen o no están activos.'));
+    } else {
+        echo json_encode(array('message' => 'Debes ingresar al menos un autor.'));
         exit;
     }
 
@@ -78,12 +72,12 @@ if (!empty($titulo) && !empty($lanzamiento) && !empty($editorial) && !empty($idi
             $libroId = $db->lastInsertId();
 
             // Inserta en la tabla libros_autores
-            $queryLibroAutor = "INSERT INTO libros_autores (libros_id, autores_id) VALUES (:libro_id, :autor_id)";
+            $queryLibroAutor = "INSERT INTO libros_autores (libros_id, autores_nombre) VALUES (:libro_id, :autor_nombre)";
             $stmtLibroAutor = $db->prepare($queryLibroAutor);
 
-            foreach ($autores as $autor) {
+            foreach ($autoresRows as $autor) {
                 $stmtLibroAutor->bindValue(':libro_id', $libroId, PDO::PARAM_INT);
-                $stmtLibroAutor->bindValue(':autor_id', $autor['id'], PDO::PARAM_INT);
+                $stmtLibroAutor->bindValue(':autor_nombre', $autor['nombre'], PDO::PARAM_STR);
                 $stmtLibroAutor->execute();
             }
 

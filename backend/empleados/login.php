@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($user['rol'] === 1) {
                 header("Location: ../../frontend/pages/admin_dashboard.php");
             } else {
-                header("Location: ../../frontend/pages/user_dashboard.php");
+                header("Location: ../../frontend/pages/employee_dashboard.php");
             }
             exit;
         } else {
