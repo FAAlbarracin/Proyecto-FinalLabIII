@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
+if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 0) {
     header("Location: http://localhost/proyectofinal/frontend/pages/loginEmpleado.php");
     exit;
 }
@@ -23,12 +23,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
     <div class="menu">
         <select onchange="location = this.value;">
             <option value="#">Seleccionar...</option>
-            <option value="admin_dashboard.php">Home</option>
-            <option value="autores.php">Autores</option>
-            <option value="editoriales.php">Editoriales</option>
-            <option value="libros.php">Libros</option>
-            <option value="empleados.php">Empleados</option>
-            <option value="socios.php">Socios</option>
+            <option value="employee_dashboard.php">Home</option>
+            <option value="employee_libros.php">Libros</option>
+            <option value="employee_socios.php">Socios</option>
         </select>
         <button><a href="logout.php">logout</a></button>
     </div>
@@ -40,7 +37,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
 
         <div class="container">
             <h2>Agregar Prestamo</h2>
-            <form method="post" action="prestamos.php">
+            <form method="post" action="employee_prestamos.php">
                 <div class="form-group">
                     <?php
                     echo "<label>ID del Empleado:</label>";
@@ -91,7 +88,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
             }
             ?>
 
-            <form method="get" action="prestamos.php">
+            <form method="get" action="employee_prestamos.php">
                 <div class="form-group">
                     <label for="id_empleado">ID del Empleado:</label>
                     <input type="text" id="id_empleado" name="id_empleado" class="form-control" required>
@@ -150,7 +147,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
                         echo '<td>' . htmlspecialchars($prestamo['socios_id']) . '</td>';
                         echo '<td>';
                         if ($prestamo['estado'] == 0) {
-                            echo '<form method="post" action="../../backend/prestamos/admin_devolucion.php">';
+                            echo '<form method="post" action="../../backend/prestamos/employee_devolucion.php">';
                             echo '<input type="hidden" name="id_libro" value="' . htmlspecialchars($prestamo['libros_id']) . '">';
                             echo '<input type="hidden" name="id_prestamo" value="' . htmlspecialchars($prestamo['id']) . '">';
                             echo '<button type="submit" class="btn btn-success">Devolver</button>';
