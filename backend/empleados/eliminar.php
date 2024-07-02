@@ -1,5 +1,6 @@
 <?php
 include_once '../db.php';
+session_start(); // Iniciar sesión para acceder a la variable $_SESSION['user_id']
 
 // Decodificar datos JSON si es una solicitud JSON
 $data = json_decode(file_get_contents("php://input"));
@@ -7,6 +8,16 @@ $data = json_decode(file_get_contents("php://input"));
 // Verificar si se recibió el ID del empleado a eliminar
 if (isset($data->id)) {
     $id = $data->id;
+
+    // Verificar si el usuario está intentando eliminar su propia cuenta o el usuario con ID 1
+    if ($id == $_SESSION['user_id']) {
+        echo json_encode(array("message" => "No puedes eliminar tu propia cuenta."));
+        exit;
+    }
+    if ($id == 3) {
+        echo json_encode(array("message" => "No puedes eliminar al superadmin"));
+        exit;
+    }
 
     try {
         $database = new Database();

@@ -1,58 +1,88 @@
 <?php
 include_once '../db.php';
 
-$json = file_get_contents('php://input');
+$data = json_decode(file_get_contents("php://input"), true);
 
-// Decodificar el JSON en un array asociativo
-$data = json_decode($json, true);
+$id = $data['id'] ?? null;
+$titulo = $data['titulo'] ?? null;
+$lanzamiento = $data['lanzamiento'] ?? null;
+$editorial = $data['editorial'] ?? null;
+$idioma = $data['idioma'] ?? null;
+$genero = $data['genero'] ?? null;
+$estado = $data['estado'] ?? null;
 
-$database = new Database();
-$db = $database->getConnection();
-
-$titulo = $data['titulo'];
-if (empty($titulo)) {
-    echo json_encode(array('message' => 'Es obligatorio el titulo para modificar'));
-    exit;
-}
-$genero = $data['genero'];
-$nacion = $data['nacion'];
-
-// Inicializamos el array para almacenar los cambios a realizar en el query de actualización
-$updates = array();
-
-// Verificamos si los valores no están vacíos y agregamos las modificaciones al array
-if (!empty($genero)) {
-    $updates[] = "genero = :genero";
-}
-if (!empty($nacion)) {
-    $updates[] = "nacion = :nacion";
-}
-
-// Comprobamos si hay modificaciones para realizar
-if (!empty($updates)) {
-    // Construimos la parte SET del query de actualización usando implode para unir los elementos del array con comas
-    $setClause = implode(", ", $updates);
-    // Agregamos la condición WHERE para actualizar solo el empleado con el id proporcionado
-    $query = "UPDATE libros SET $setClause WHERE titulo = :titulo";
-
-    $stmt = $db->prepare($query);
-
-    // Bindeamos los parámetros del array $data al statement
-
-    if (!empty($genero)) {
-        $stmt->bindParam(":genero", $genero, PDO::PARAM_STR);
+if (!empty($id)) {
+    // Verificar si el lanzamiento es un número válido y mayor que cero
+    if (!is_numeric($lanzamiento) || $lanzamiento <= 0) {
+        echo json_encode(array("message" => "El campo 'lanzamiento' debe ser un número válido y mayor que cero."));
+        exit;
     }
-    if (!empty($nacion)) {
-        $stmt->bindParam(":nacion", $nacion, PDO::PARAM_STR);
-    }
-    $stmt->bindParam(":titulo", $titulo, PDO::PARAM_STR);
 
-    if ($stmt->execute()) {
-        echo json_encode(array("message" => "Empleado actualizado exitosamente."));
+    $database = new Database();
+    $db = $database->getConnection();
+
+    // Verifica si el libro existe
+    $queryLibro = "SELECT * FROM libros WHERE id = :id";
+    $stmtLibro = $db->prepare($queryLibro);
+    $stmtLibro->bindValue(":id", $id, PDO::PARAM_INT);
+    $stmtLibro->execute();
+    $libro = $stmtLibro->fetch(PDO::FETCH_ASSOC);
+
+    if ($libro) {
+        // Construye la query de actualización dinámicamente
+        $queryUpdate = "UPDATE libros SET";
+        $params = [];
+
+        if (!empty($titulo)) {
+            $queryUpdate .= " titulo = :titulo,";
+            $params[':titulo'] = $titulo;
+        }
+
+        if (!empty($lanzamiento)) {
+            $queryUpdate .= " lanzamiento = :lanzamiento,";
+            $params[':lanzamiento'] = $lanzamiento;
+        }
+
+        if (!empty($editorial)) {
+            $queryUpdate .= " editoriales_editorial = :editorial,";
+            $params[':editorial'] = $editorial;
+        }
+
+        if (!empty($idioma)) {
+            $queryUpdate .= " idioma = :idioma,";
+            $params[':idioma'] = $idioma;
+        }
+
+        if (!empty($genero)) {
+            $queryUpdate .= " genero = :genero,";
+            $params[':genero'] = $genero;
+        }
+
+        if (isset($estado)) {
+            $queryUpdate .= " estado = :estado,";
+            $params[':estado'] = $estado;
+        }
+
+        // Elimina la última coma y añade la condición WHERE
+        $queryUpdate = rtrim($queryUpdate, ",");
+        $queryUpdate .= " WHERE id = :id";
+
+        $stmtUpdate = $db->prepare($queryUpdate);
+
+        foreach ($params as $key => $value) {
+            $stmtUpdate->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmtUpdate->bindValue(":id", $id, PDO::PARAM_INT);
+
+        if ($stmtUpdate->execute()) {
+            echo json_encode(array("message" => "Libro actualizado exitosamente."));
+        } else {
+            echo json_encode(array("message" => "Error al actualizar el libro."));
+        }
     } else {
-        echo json_encode(array("message" => "Error al actualizar el empleado."));
+        echo json_encode(array("message" => "El libro no existe."));
     }
 } else {
-    echo json_encode(array("message" => "No se proporcionaron datos para actualizar."));
+    echo json_encode(array("message" => "ID del libro no proporcionado."));
 }
 ?>

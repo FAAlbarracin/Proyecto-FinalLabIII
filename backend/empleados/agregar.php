@@ -3,7 +3,8 @@ include_once '../db.php';
 
 $data = json_decode(file_get_contents("php://input"), true); // Decodificar como array asociativo
 
-if (!empty($data['nombre']) && !empty($data['dni'])) { // Verificar que nombre y dni no estén vacíos
+if (!empty($data['nombre']) && isset($data['dni']) && is_numeric($data['dni']) && $data['dni'] > 0 && intval($data['dni']) == $data['dni']) { 
+    // Verificar que nombre no esté vacío y que dni sea un número entero positivo
     $database = new Database();
     $db = $database->getConnection();
 
@@ -48,6 +49,5 @@ if (!empty($data['nombre']) && !empty($data['dni'])) { // Verificar que nombre y
         }
     }
 } else {
-    echo json_encode(array("message" => "Datos incompletos."));
+    echo json_encode(array("message" => "Datos incompletos o DNI no válido."));
 }
-?>

@@ -11,48 +11,52 @@ $db = $database->getConnection();
 
 $id = $data['id'];
 if (empty($id)) {
-    echo json_encode(array('message' => 'Es obligatorio el id para nodificar'));
+    echo json_encode(array('message' => 'Es obligatorio el id para modificar'));
     exit;
 }
 $nombre = $data['nombre'];
-$dni = $data['dni'];
+$dni = isset($data['dni']) ? $data['dni'] : null;
 
-// Inicializamos el array para almacenar los cambios a realizar en el query de actualización
-$updates = array();
+// Validar que el DNI sea un número entero positivo
+if (!empty($dni) && is_numeric($dni) && $dni > 0 && intval($dni) == $dni) {
+    $updates = array();
 
-// Verificamos si los valores no están vacíos y agregamos las modificaciones al array
-if (!empty($nombre)) {
-    $updates[] = "nombre = :nombre";
-}
-if (!empty($dni)) {
-    $updates[] = "dni = :dni";
-}
-
-// Comprobamos si hay modificaciones para realizar
-if (!empty($updates)) {
-    // Construimos la parte SET del query de actualización usando implode para unir los elementos del array con comas
-    $setClause = implode(", ", $updates);
-    // Agregamos la condición WHERE para actualizar solo el empleado con el id proporcionado
-    $query = "UPDATE socios SET $setClause WHERE id = :id";
-    
-    $stmt = $db->prepare($query);
-
-    // Bindeamos los parámetros del array $data al statement
+    // Verificamos si los valores no están vacíos y agregamos las modificaciones al array
     if (!empty($nombre)) {
-        $stmt->bindParam(":nombre", $nombre, PDO::PARAM_STR);
+        $updates[] = "nombre = :nombre";
     }
     if (!empty($dni)) {
-        $stmt->bindParam(":dni", $dni, PDO::PARAM_STR);
+        $updates[] = "dni = :dni";
     }
 
-    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    // Comprobamos si hay modificaciones para realizar
+    if (!empty($updates)) {
+        // Construimos la parte SET del query de actualización usando implode para unir los elementos del array con comas
+        $setClause = implode(", ", $updates);
+        // Agregamos la condición WHERE para actualizar solo el socio con el id proporcionado
+        $query = "UPDATE socios SET $setClause WHERE id = :id";
 
-    if ($stmt->execute()) {
-        echo json_encode(array("message" => "Socio actualizado exitosamente."));
+        $stmt = $db->prepare($query);
+
+        // Bindeamos los parámetros del array $data al statement
+        if (!empty($nombre)) {
+            $stmt->bindParam(":nombre", $nombre, PDO::PARAM_STR);
+        }
+        if (!empty($dni)) {
+            $stmt->bindParam(":dni", $dni, PDO::PARAM_INT);
+        }
+
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            echo json_encode(array("message" => "Socio actualizado exitosamente."));
+        } else {
+            echo json_encode(array("message" => "Error al actualizar el socio."));
+        }
     } else {
-        echo json_encode(array("message" => "Error al actualizar el socio."));
+        echo json_encode(array("message" => "No se proporcionaron datos para actualizar."));
     }
 } else {
-    echo json_encode(array("message" => "No se proporcionaron datos para actualizar."));
+    echo json_encode(array("message" => "DNI inválido."));
 }
 ?>

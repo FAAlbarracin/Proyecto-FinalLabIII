@@ -177,27 +177,32 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
             // Manejo de la solicitud de eliminación
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && isset($_POST['id'])) {
                 $id = $_POST['id'];
-                $url = 'http://localhost/proyectofinal/backend/empleados/eliminar.php';
 
-                $data = array('id' => $id);
-                $options = array(
-                    'http' => array(
-                        'header' => "Content-Type: application/json\r\n",
-                        'method' => 'DELETE',
-                        'content' => json_encode($data),
-                    ),
-                );
-
-                $context = stream_context_create($options);
-                $result = file_get_contents($url, false, $context);
-
-                if ($result === FALSE) {
-                    echo '<p>Error al eliminar el empleado.</p>';
+                if ($id == $_SESSION['user_id']) {
+                    echo '<p>No puedes eliminar tu propia cuenta.</p>';
                 } else {
-                    $response = json_decode($result, true);
-                    echo '<p>' . htmlspecialchars($response['message']) . '</p>';
-                    // Recargar la página para reflejar los cambios
-                    echo '<meta http-equiv="refresh" content="0">';
+                    $url = 'http://localhost/proyectofinal/backend/empleados/eliminar.php';
+
+                    $data = array('id' => $id);
+                    $options = array(
+                        'http' => array(
+                            'header' => "Content-Type: application/json\r\n",
+                            'method' => 'DELETE',
+                            'content' => json_encode($data),
+                        ),
+                    );
+
+                    $context = stream_context_create($options);
+                    $result = file_get_contents($url, false, $context);
+
+                    if ($result === FALSE) {
+                        echo '<p>Error al eliminar el empleado.</p>';
+                    } else {
+                        $response = json_decode($result, true);
+                        echo '<p>' . htmlspecialchars($response['message']) . '</p>';
+                        // Recargar la página para reflejar los cambios
+                        echo '<meta http-equiv="refresh" content="0">';
+                    }
                 }
             } elseif (isset($_POST['update'])) {
                 $id = $_POST['id'];
@@ -205,98 +210,106 @@ if (!isset($_SESSION['user_id']) || $_SESSION['rol'] != 1) {
                 $pass = $_POST['pass'];
                 $dni = $_POST['dni'];
                 $rol = $_POST['rol'];
-                $url = 'http://localhost/proyectofinal/backend/empleados/modificar.php';
 
-                $data = array(
-                    'id' => $id,
-                    'nombre' => $nombre,
-                    'pass' => $pass,
-                    'dni' => $dni,
-                    'rol' => $rol
-                );
-                $options = array(
-                    'http' => array(
-                        'header' => "Content-type: application/json\r\n",
-                        'method' => 'PUT',
-                        'content' => json_encode($data),
-                    ),
-                );
-
-                $context = stream_context_create($options);
-                $result = @file_get_contents($url, false, $context);
-
-                if ($result === FALSE) {
-                    echo '<p>Error al actualizar el empleado.</p>';
+                // Verificar que el usuario no intente cambiar su propio rol
+                if ($id == $_SESSION['user_id'] && $rol != $_SESSION['rol']) {
+                    echo '<p>No puedes modificar tu propio rol.</p>';
                 } else {
-                    $response = json_decode($result, true);
-                    echo '<p>' . htmlspecialchars($response['message']) . '</p>';
-                    // Recargar la página para reflejar los cambios
-                    echo '<meta http-equiv="refresh" content="0">';
+                    $url = 'http://localhost/proyectofinal/backend/empleados/modificar.php';
+
+                    $data = array(
+                        'id' => $id,
+                        'nombre' => $nombre,
+                        'pass' => $pass,
+                        'dni' => $dni,
+                        'rol' => $rol
+                    );
+                    $options = array(
+                        'http' => array(
+                            'header' => "Content-Type: application/json\r\n",
+                            'method' => 'PUT',
+                            'content' => json_encode($data),
+                        ),
+                    );
+
+                    $context = stream_context_create($options);
+                    $result = file_get_contents($url, false, $context);
+
+                    if ($result === FALSE) {
+                        echo '<p>Error al actualizar el empleado.</p>';
+                    } else {
+                        $response = json_decode($result, true);
+                        echo '<p>' . htmlspecialchars($response['message']) . '</p>';
+                        // Recargar la página para reflejar los cambios
+                        echo '<meta http-equiv="refresh" content="0">';
+                    }
                 }
             }
             ?>
-        </div>
 
-        <!-- Modal -->
-        <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editModalLabel">Actualizar Empleado</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form method="post" action="empleados.php">
-                            <input type="hidden" name="id" id="edit-id">
-                            <div class="form-group">
-                                <label for="edit-nombre">Nombre</label>
-                                <input type="text" class="form-control" id="edit-nombre" name="nombre" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-pass">Contraseña</label>
-                                <input type="text" class="form-control" id="edit-pass" name="pass" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-dni">DNI</label>
-                                <input type="text" class="form-control" id="edit-dni" name="dni" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-rol">Rol</label>
-                                <select name="rol" class="form-control" id="edit-rol" required>
-                                    <option value="#">Seleccione</option>
-                                    <option value="1">Administrador</option>
-                                    <option value="0">Empleado</option>
-                                </select>
-                            </div>
-                            <button type="submit" name="update" class="btn btn-primary">Actualizar</button>
-                        </form>
+            <!-- Modal para actualizar empleado -->
+            <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel">Actualizar Empleado</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="empleados.php">
+                                <input type="hidden" id="edit-id" name="id">
+                                <div class="form-group">
+                                    <label for="edit-nombre">Nombre:</label>
+                                    <input type="text" id="edit-nombre" name="nombre" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-pass">Contraseña:</label>
+                                    <input type="text" id="edit-pass" name="pass" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-dni">DNI:</label>
+                                    <input type="text" id="edit-dni" name="dni" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-rol">Rol:</label>
+                                    <select id="edit-rol" name="rol" class="form-control" required>
+                                        <option value="1">Administrador</option>
+                                        <option value="0">Empleado</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" name="update" class="btn btn-primary">Actualizar Empleado</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
+
         </div>
-
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <script>
-            $('#editModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget); // Button that triggered the modal
-                var id = button.data('id');
-                var nombre = button.data('nombre');
-                var pass = button.data('pass');
-                var dni = button.data('dni');
-                var rol = button.data('rol');
-
-                var modal = $(this);
-                modal.find('#edit-id').val(id);
-                modal.find('#edit-nombre').val(nombre);
-                modal.find('#edit-pass').val(pass);
-                modal.find('#edit-dni').val(dni);
-                modal.find('#edit-rol').val(rol);
-            });
-        </script>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $('#editModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var id = button.data('id');
+            var nombre = button.data('nombre');
+            var pass = button.data('pass');
+            var dni = button.data('dni');
+            var rol = button.data('rol');
+
+            var modal = $(this);
+            modal.find('#edit-id').val(id);
+            modal.find('#edit-nombre').val(nombre);
+            modal.find('#edit-pass').val(pass);
+            modal.find('#edit-dni').val(dni);
+            modal.find('#edit-rol').val(rol);
+        });
+    </script>
 </body>
+
 </html>

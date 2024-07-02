@@ -1,5 +1,6 @@
 <?php
 include_once '../db.php';
+session_start(); // Iniciar sesión para acceder a la variable $_SESSION['user_id']
 
 $json = file_get_contents('php://input');
 
@@ -11,12 +12,13 @@ $db = $database->getConnection();
 
 $id = $data['id'];
 if (empty($id)) {
-    echo json_encode(array('message' => 'Es obligatorio el id para nodificar'));
+    echo json_encode(array('message' => 'Es obligatorio el id para modificar'));
     exit;
 }
+
 $nombre = $data['nombre'];
-$dni = $data['dni'];
-$rol = $data['rol'];
+$dni = isset($data['dni']) ? $data['dni'] : null;
+$rol = isset($data['rol']) ? $data['rol'] : null;
 
 // Inicializamos el array para almacenar los cambios a realizar en el query de actualización
 $updates = array();
@@ -25,11 +27,18 @@ $updates = array();
 if (!empty($nombre)) {
     $updates[] = "nombre = :nombre";
 }
-if (!empty($dni)) {
+if (isset($dni) && is_numeric($dni) && $dni > 0 && intval($dni) == $dni) {
     $updates[] = "dni = :dni";
 }
+// Si el usuario activo es el que se está modificando y no es el usuario con ID 1, permitir cambiar el rol
 if (!empty($rol)) {
-    $updates[] = "rol = :rol";
+    if ($id == 3) {
+        echo json_encode(array('message' => 'No se puede modificar al superadmin'));
+        exit;
+    }
+    if ($id != $_SESSION['user_id']) {
+        $updates[] = "rol = :rol";
+    }
 }
 
 // Comprobamos si hay modificaciones para realizar
@@ -45,10 +54,10 @@ if (!empty($updates)) {
     if (!empty($nombre)) {
         $stmt->bindParam(":nombre", $nombre, PDO::PARAM_STR);
     }
-    if (!empty($dni)) {
-        $stmt->bindParam(":dni", $dni, PDO::PARAM_STR);
+    if (isset($dni) && is_numeric($dni) && $dni > 0 && intval($dni) == $dni) {
+        $stmt->bindParam(":dni", $dni, PDO::PARAM_INT);
     }
-    if (!empty($rol)) {
+    if (!empty($rol) && $id != $_SESSION['user_id']) {
         $stmt->bindParam(":rol", $rol, PDO::PARAM_INT);
     }
     
